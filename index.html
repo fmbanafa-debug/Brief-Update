@@ -198,7 +198,7 @@
 
             const availableTags = ["AI", "Entertainment", "Finance", "Industrial", "Pharma", "Real Estate", "Retail", "Technological Services", "Telecommunications"].sort();
             const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
-            const apiKey = "";
+            const apiKey = "AIzaSyD9xRkAan0WhW8GTegveSaU5gaInCO4Yy0"; // <-- PASTE YOUR API KEY HERE FOR OTHER PLATFORMS
 
             // Initial news articles to populate the page on first load
             const initialNews = [
@@ -513,7 +513,7 @@
                     };
 
                     try {
-                        const response = await fetch(API_URL, {
+                        const response = await fetch(API_URL + apiKey, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -581,7 +581,7 @@
                         }
                     };
             
-                    const browsingResponse = await fetch(API_URL, {
+                    const browsingResponse = await fetch(API_URL + apiKey, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(browsingPayload)
@@ -623,7 +623,7 @@
                         }
                     };
             
-                    const extractionResponse = await fetch(API_URL, {
+                    const extractionResponse = await fetch(API_URL + apiKey, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(extractionPayload)
@@ -794,3 +794,4 @@
     </script>
 </body>
 </html>
+
