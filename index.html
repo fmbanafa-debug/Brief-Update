@@ -25,6 +25,15 @@
             right: 1rem;
             z-index: 50;
         }
+        .drop-area {
+            border: 2px dashed #4B5563;
+            background-color: #1F2937;
+            transition: all 0.3s ease;
+        }
+        .drop-area.active {
+            border-color: #6366F1;
+            background-color: #111827;
+        }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-200">
@@ -41,7 +50,7 @@
             <p class="text-lg md:text-xl text-gray-400">Your curated news, on your own terms.</p>
         </header>
 
-        <!-- Filter and Upload Section -->
+        <!-- Filter and Add Section -->
         <div class="mb-12 space-y-6 md:space-y-0 md:flex md:items-center md:space-x-4">
             <div class="flex-grow">
                 <label for="tagFilter" class="block text-sm font-medium text-gray-400 mb-1">Filter by Tag</label>
@@ -57,23 +66,81 @@
                 </div>
                 <input type="text" id="searchInput" placeholder="Search by keyword..." class="w-full pl-10 pr-4 py-2 bg-gray-800 text-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
             </div>
-            <input type="file" id="imageUpload" accept="image/*" class="hidden">
-            <button id="uploadBtn" class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
-                Upload & Add Article
+            <button id="showAddFormBtn" class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors">
+                Add New Article
             </button>
         </div>
-        
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="hidden text-center mt-8 mb-8">
-            <div class="flex justify-center items-center space-x-2 text-blue-400">
-                <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Analyzing image and adding article...</span>
-            </div>
-        </div>
 
+        <!-- Add News Form (Initially hidden) -->
+        <div id="addFormContainer" class="hidden bg-gray-800 p-6 md:p-8 rounded-2xl shadow-xl mb-12">
+            <h2 id="formTitle" class="text-2xl font-bold mb-4">Add a New Article</h2>
+
+            <div class="mt-6 space-y-4">
+                <!-- URL Input and Analyze Button -->
+                <div>
+                    <label for="urlInput" class="block text-sm font-medium text-gray-300">Analyze from URL</label>
+                    <div class="flex space-x-2">
+                        <input type="url" id="urlInput" placeholder="https://example.com/article" class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button type="button" id="analyzeUrlBtn" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                            Analyze URL
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center text-gray-500">
+                    <p>— OR —</p>
+                </div>
+
+                <!-- Drag & Drop Area -->
+                <div id="drop-area" class="drop-area text-center p-8 rounded-lg mb-6 cursor-pointer">
+                    <p class="text-gray-400 text-sm">Drag & drop a news screenshot or PDF here, or</p>
+                    <label for="imageUpload" class="text-blue-400 hover:text-blue-300 font-medium cursor-pointer">
+                        Browse to upload
+                    </label>
+                    <input type="file" id="imageUpload" accept="image/*, application/pdf" class="hidden">
+                </div>
+                <button id="analyzeImageBtn" class="w-full mt-4 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                    Analyze Document
+                </button>
+                <div id="loadingIndicator" class="mt-4 text-center text-blue-400 hidden">
+                    Analyzing...
+                </div>
+            </div>
+
+            <form id="addNewsForm" class="mt-6 space-y-4">
+                <div>
+                    <label for="newsTitle" class="block text-sm font-medium text-gray-300">Title</label>
+                    <input type="text" id="newsTitle" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="newsSummary" class="block text-sm font-medium text-gray-300">Summary (Short)</label>
+                    <textarea id="newsSummary" rows="2" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label for="newsFullDescription" class="block text-sm font-medium text-gray-300">Full Description (Extensive, in points)</label>
+                    <textarea id="newsFullDescription" rows="5" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label for="newsTag" class="block text-sm font-medium text-gray-300">Tag</label>
+                    <select id="newsTag" required class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div>
+                    <label for="sourceUrl" class="block text-sm font-medium text-gray-300">Source URL (Optional)</label>
+                    <input type="url" id="sourceUrl" placeholder="https://example.com/article" class="w-full mt-1 p-2 bg-gray-700 border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="w-full px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                        Save Article
+                    </button>
+                    <button type="button" id="cancelFormBtn" class="w-full px-6 py-3 bg-gray-600 text-white font-bold rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+        
         <!-- News Grid -->
         <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- News articles will be dynamically injected here by JavaScript -->
@@ -102,9 +169,13 @@
         // Use a self-executing anonymous function to avoid polluting the global scope
         (function() {
             const newsGrid = document.getElementById('newsGrid');
-            const uploadBtn = document.getElementById('uploadBtn');
-            const imageUpload = document.getElementById('imageUpload');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+            const showAddFormBtn = document.getElementById('showAddFormBtn');
+            const addFormContainer = document.getElementById('addFormContainer');
+            const addNewsForm = document.getElementById('addNewsForm');
+            const newsTitleInput = document.getElementById('newsTitle');
+            const newsSummaryInput = document.getElementById('newsSummary');
+            const newsFullDescriptionInput = document.getElementById('newsFullDescription');
+            const newsUrlInput = document.getElementById('sourceUrl'); // New URL input
             const noNewsMessage = document.getElementById('noNewsMessage');
             const messageBox = document.getElementById('message-box');
             const modal = document.getElementById('modal');
@@ -112,7 +183,18 @@
             const modalTitle = document.getElementById('modalTitle');
             const modalContent = document.getElementById('modalContent');
             const tagFilter = document.getElementById('tagFilter');
+            const newsTagInput = document.getElementById('newsTag');
             const searchInput = document.getElementById('searchInput');
+            const imageUpload = document.getElementById('imageUpload');
+            const analyzeImageBtn = document.getElementById('analyzeImageBtn');
+            const analyzeUrlBtn = document.getElementById('analyzeUrlBtn');
+            const urlInput = document.getElementById('urlInput');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const formTitle = document.getElementById('formTitle');
+            const cancelFormBtn = document.getElementById('cancelFormBtn');
+            const dropArea = document.getElementById('drop-area');
+
+            let editingIndex = -1; // -1 indicates not in editing mode
 
             const availableTags = ["AI", "Entertainment", "Finance", "Industrial", "Pharma", "Real Estate", "Retail", "Technological Services", "Telecommunications"].sort();
             const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
@@ -120,6 +202,20 @@
 
             // Initial news articles to populate the page on first load
             const initialNews = [
+                {
+                    title: "Data Requirements for Human Drugs Submission",
+                    url: "https://www.sfda.gov.sa",
+                    summary: "The Saudi Food and Drug Authority (SFDA) has updated its electronic Common Technical Document (eCTD) requirements for submitting information on nitrosamine impurities in new and generic drug applications.",
+                    fullDescription: `
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Risk Assessment Report:</strong> The SFDA now mandates a risk assessment report for potential nitrosamine impurities to be included in drug applications.</li>
+                            <li><strong>eCTD Updates:</strong> The eCTD rules have been updated for 2025, including new Module 1 rules and baseline submission requirements to facilitate a more efficient review process.</li>
+                            <li><strong>Applicability:</strong> These new requirements apply to both new and generic pharmaceutical products as part of the initial registration process.</li>
+                        </ul>
+                    `,
+                    date: "September 12, 2025",
+                    tag: 'Pharma'
+                },
                 {
                     title: "Tabby and Tamara Revenues Exceed Half a Billion Riyals in Q1 2025 with 39% Growth",
                     url: "https://www.aleqt.com/2025/05/21/article_2761552.html",
@@ -312,7 +408,7 @@
                     noNewsMessage.classList.remove('hidden');
                 } else {
                     noNewsMessage.classList.add('hidden');
-                    filteredNews.forEach(article => {
+                    filteredNews.forEach((article, index) => {
                         const card = document.createElement('div');
                         card.className = 'news-card bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between';
                         
@@ -327,7 +423,12 @@
                                 <button class="read-more-btn text-blue-400 hover:text-blue-300 font-medium transition-colors" data-title="${article.title}" data-full-description="${encodeURIComponent(article.fullDescription || '')}">
                                     Read more &rarr;
                                 </button>
+                                ${article.url ? `<a href="${article.url}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-gray-300 transition-colors ml-4 text-sm font-medium">View Original</a>` : ''}
                                 <span class="text-xs text-gray-500">${article.date}</span>
+                            </div>
+                            <div class="mt-4 flex space-x-2">
+                                <button class="edit-btn text-sm text-green-400 hover:text-green-300 font-medium transition-colors" data-index="${index}">Edit</button>
+                                <button class="delete-btn text-sm text-red-400 hover:text-red-300 font-medium transition-colors" data-index="${index}">Delete</button>
                             </div>
                         `;
                         card.innerHTML = content;
@@ -336,40 +437,71 @@
                 }
             }
             
-            // Event listener for the upload button
-            uploadBtn.addEventListener('click', () => {
-                imageUpload.click();
+            // Event listener for showing/hiding the add form
+            showAddFormBtn.addEventListener('click', () => {
+                addNewsForm.reset();
+                addFormContainer.classList.toggle('hidden');
+                if (!addFormContainer.classList.contains('hidden')) {
+                    newsTitleInput.focus();
+                }
+                editingIndex = -1; // Reset editing mode
+                formTitle.textContent = "Add a New Article";
             });
 
-            // Event listener for analyzing image and adding article automatically
-            imageUpload.addEventListener('change', async () => {
-                const file = imageUpload.files[0];
+            // Event listener for canceling the add/edit form
+            cancelFormBtn.addEventListener('click', () => {
+                addNewsForm.reset();
+                addFormContainer.classList.add('hidden');
+                editingIndex = -1; // Reset editing mode
+                formTitle.textContent = "Add a New Article";
+            });
+
+            // Handle file upload and analysis
+            const handleFile = async (file) => {
                 if (!file) {
+                    showMessage('Please select an image or PDF file.', 'error');
                     return;
                 }
+                
+                const fileType = file.type;
+                let prompt;
 
-                loadingIndicator.classList.remove('hidden');
-                uploadBtn.disabled = true;
-
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const base64Data = e.target.result.split(',')[1];
-                    
-                    const prompt = `Act as a news editor. Analyze the following screenshot of a news article. Extract the following information as a JSON object:
+                if (fileType.startsWith('image/')) {
+                    prompt = `Act as a news editor. Analyze the following screenshot of a news article. Extract the following information as a JSON object:
                     1. "title" (string): The main headline of the article.
+                    2. "summary" (string): A brief, 1-2 sentence summary of the news.
+                    3. "fullDescription" (string): An extensive description of the news in points. Use bullet points for each new point. Start each bullet point with a bolded keyword.
+                    4. "tag" (string): A single tag from the following list: ${availableTags.join(', ')}. Choose the most relevant tag.
+                    
+                    Respond with only the JSON object.`;
+                } else if (fileType === 'application/pdf') {
+                    prompt = `Act as a news editor. Analyze the following PDF document. Extract the following information as a JSON object:
+                    1. "title" (string): The main headline or title of the document.
                     2. "summary" (string): A brief, 1-2 sentence summary of the news.
                     3. "fullDescription" (string): An extensive description of the news in points. Use bullet points for each new point. Start each bullet point with a bolded keyword.
                     4. "tag" (string): A single tag from the following list: ${availableTags.join(', ')}. Choose the most relevant tag.
 
                     Respond with only the JSON object.`;
+                } else {
+                    showMessage('Unsupported file type. Please upload an image or PDF.', 'error');
+                    return;
+                }
 
+                loadingIndicator.classList.remove('hidden');
+                analyzeImageBtn.disabled = true;
+                loadingIndicator.textContent = "Analyzing document content...";
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Data = e.target.result.split(',')[1];
+                    
                     const payload = {
                         contents: [{
                             parts: [
                                 { text: prompt },
                                 {
                                     inlineData: {
-                                        mimeType: file.type,
+                                        mimeType: fileType,
                                         data: base64Data
                                     }
                                 }
@@ -387,41 +519,223 @@
                             body: JSON.stringify(payload)
                         });
 
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+
                         const result = await response.json();
                         const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                        
+                        if (!jsonText) {
+                           throw new Error('No structured data extracted from document.');
+                        }
+                        
                         const data = JSON.parse(jsonText);
 
-                        const newArticle = {
-                            title: data.title || 'Untitled',
-                            url: "", 
-                            summary: data.summary || 'No summary available.',
-                            fullDescription: data.fullDescription || 'No detailed description available.',
-                            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                            tag: data.tag || availableTags[0]
-                        };
+                        newsTitleInput.value = data.title || '';
+                        newsSummaryInput.value = data.summary || '';
+                        newsFullDescriptionInput.value = data.fullDescription || '';
+                        newsTagInput.value = data.tag || availableTags[0];
+                        newsUrlInput.value = ""; // Explicitly clear the URL field
 
-                        const newsArticles = loadNews();
-                        newsArticles.unshift(newArticle);
-                        saveNews(newsArticles);
-                        renderNews();
-                        showMessage('Article added successfully!');
+                        showMessage('Article details extracted successfully!');
 
                     } catch (error) {
-                        console.error('Error analyzing image:', error);
-                        showMessage('Failed to analyze image. Please try again.', 'error');
+                        console.error('Error analyzing document:', error);
+                        showMessage('Failed to analyze document. Please try again.', 'error');
                     } finally {
                         loadingIndicator.classList.add('hidden');
-                        uploadBtn.disabled = false;
+                        analyzeImageBtn.disabled = false;
+                        loadingIndicator.textContent = "Analyzing...";
                     }
                 };
                 reader.readAsDataURL(file);
+            }
+
+            // Handle URL analysis
+            const handleUrl = async (url) => {
+                if (!url) {
+                    showMessage('Please enter a URL.', 'error');
+                    return;
+                }
+            
+                loadingIndicator.classList.remove('hidden');
+                analyzeUrlBtn.disabled = true;
+                loadingIndicator.textContent = "Fetching URL content...";
+            
+                try {
+                    // Use a query to the LLM to browse the URL and get the content
+                    const browsingPrompt = `Act as a web content retriever. Go to the URL provided and get the full text content of the main article. Do not include headers, footers, or navigation menus. Return the full, unsummarized text as a JSON object with a single key "content".`;
+            
+                    const browsingPayload = {
+                        contents: [{
+                            parts: [{
+                                text: browsingPrompt
+                            }, {
+                                text: `URL to browse: ${url}`
+                            }]
+                        }],
+                        tools: [{ "google_search": {}, "browsing": {} }],
+                        generationConfig: {
+                            responseMimeType: "application/json"
+                        }
+                    };
+            
+                    const browsingResponse = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(browsingPayload)
+                    });
+            
+                    if (!browsingResponse.ok) {
+                        throw new Error(`HTTP error! status: ${browsingResponse.status}`);
+                    }
+            
+                    const browsingResult = await browsingResponse.json();
+                    const browsingJsonText = browsingResult.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+                    if (!browsingJsonText) {
+                        throw new Error('No content found for the URL.');
+                    }
+            
+                    const browsingData = JSON.parse(browsingJsonText);
+                    const articleText = browsingData.content;
+            
+                    // Now, send the article text to the LLM for structured extraction
+                    loadingIndicator.textContent = "Analyzing article content...";
+                    const extractionPrompt = `Act as a news editor. Analyze the following news article text. Extract the following information as a JSON object:
+                    1. "title" (string): The main headline of the article.
+                    2. "summary" (string): A brief, 1-2 sentence summary of the news.
+                    3. "fullDescription" (string): An extensive description of the news in points. Use bullet points for each new point. Start each bullet point with a bolded keyword.
+                    4. "tag" (string): A single tag from the following list: ${availableTags.join(', ')}. Choose the most relevant tag.
+            
+                    Respond with only the JSON object.
+            
+                    Article text:
+                    ${articleText}`;
+            
+                    const extractionPayload = {
+                        contents: [{
+                            parts: [{ text: extractionPrompt }]
+                        }],
+                        generationConfig: {
+                            responseMimeType: "application/json"
+                        }
+                    };
+            
+                    const extractionResponse = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(extractionPayload)
+                    });
+            
+                    if (!extractionResponse.ok) {
+                        throw new Error(`HTTP error! status: ${extractionResponse.status}`);
+                    }
+            
+                    const extractionResult = await extractionResponse.json();
+                    const extractionJsonText = extractionResult.candidates?.[0]?.content?.parts?.[0]?.text;
+            
+                    if (!extractionJsonText) {
+                        throw new Error('No structured data extracted from content.');
+                    }
+            
+                    const extractedData = JSON.parse(extractionJsonText);
+            
+                    newsTitleInput.value = extractedData.title || '';
+                    newsSummaryInput.value = extractedData.summary || '';
+                    newsFullDescriptionInput.value = extractedData.fullDescription || '';
+                    newsTagInput.value = extractedData.tag || availableTags[0];
+                    newsUrlInput.value = url;
+                    
+                    showMessage('Article details extracted successfully from URL!');
+            
+                } catch (error) {
+                    console.error('Error analyzing URL:', error);
+                    showMessage('Failed to analyze URL. Please check the link and try again.', 'error');
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                    analyzeUrlBtn.disabled = false;
+                    loadingIndicator.textContent = "Analyzing...";
+                }
+            };
+
+
+            // Event listener for analyzing image
+            analyzeImageBtn.addEventListener('click', () => handleFile(imageUpload.files[0]));
+            // Event listener for analyzing URL
+            analyzeUrlBtn.addEventListener('click', () => handleUrl(urlInput.value));
+
+            // Drag and drop events
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.classList.add('active');
+            });
+
+            dropArea.addEventListener('dragleave', () => {
+                dropArea.classList.remove('active');
+            });
+
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropArea.classList.remove('active');
+                const file = e.dataTransfer.files[0];
+                handleFile(file);
+            });
+
+            // Click event for the hidden file input
+            dropArea.addEventListener('click', () => {
+                imageUpload.click();
+            });
+
+            // Handle file selection from the browse button
+            imageUpload.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    handleFile(file);
+                }
+            });
+
+            // Event listener for adding/saving a new article
+            addNewsForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const newsArticles = loadNews();
+                
+                if (editingIndex === -1) {
+                    // Add new article
+                    const newArticle = {
+                        title: newsTitleInput.value,
+                        url: newsUrlInput.value || "",
+                        summary: newsSummaryInput.value,
+                        fullDescription: newsFullDescriptionInput.value,
+                        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                        tag: newsTagInput.value
+                    };
+                    newsArticles.unshift(newArticle);
+                    showMessage('Article added successfully!');
+                } else {
+                    // Edit existing article
+                    newsArticles[editingIndex].title = newsTitleInput.value;
+                    newsArticles[editingIndex].url = newsUrlInput.value || "";
+                    newsArticles[editingIndex].summary = newsSummaryInput.value;
+                    newsArticles[editingIndex].fullDescription = newsFullDescriptionInput.value;
+                    newsArticles[editingIndex].tag = newsTagInput.value;
+                    showMessage('Article updated successfully!');
+                    editingIndex = -1; // Reset editing mode
+                    formTitle.textContent = "Add a New Article";
+                }
+                
+                saveNews(newsArticles);
+                renderNews();
+                addNewsForm.reset();
+                addFormContainer.classList.add('hidden');
             });
 
             // Event listeners for filter and search
             tagFilter.addEventListener('change', renderNews);
             searchInput.addEventListener('input', renderNews);
 
-            // Event listener for the modal to show article details
+            // Event listener for the modal, edit, and delete buttons
             newsGrid.addEventListener('click', (e) => {
                 if (e.target.classList.contains('read-more-btn')) {
                     const title = e.target.getAttribute('data-title');
@@ -429,6 +743,29 @@
                     modalTitle.textContent = title;
                     modalContent.innerHTML = fullDescription;
                     modal.classList.remove('hidden');
+                } else if (e.target.classList.contains('edit-btn')) {
+                    const indexToEdit = e.target.getAttribute('data-index');
+                    const newsArticles = loadNews();
+                    const article = newsArticles[indexToEdit];
+                    
+                    newsTitleInput.value = article.title;
+                    newsSummaryInput.value = article.summary;
+                    newsFullDescriptionInput.value = article.fullDescription;
+                    newsTagInput.value = article.tag;
+                    newsUrlInput.value = article.url || ""; // Populate URL field on edit
+
+                    editingIndex = indexToEdit;
+                    formTitle.textContent = "Edit Article";
+                    addFormContainer.classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                } else if (e.target.classList.contains('delete-btn')) {
+                    const indexToDelete = e.target.getAttribute('data-index');
+                    const newsArticles = loadNews();
+                    newsArticles.splice(indexToDelete, 1);
+                    saveNews(newsArticles);
+                    renderNews();
+                    showMessage('Article deleted successfully!');
                 }
             });
 
@@ -437,15 +774,23 @@
                 modal.classList.add('hidden');
             });
 
+            // Event listener to close modal when clicking outside of the content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+
             // Initial render when the page loads
             document.addEventListener('DOMContentLoaded', () => {
                 // Populate the tag dropdowns
                 tagFilter.innerHTML = '<option value="All">All</option>' + availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
+                newsTagInput.innerHTML = availableTags.map(tag => `<option value="${tag}">${tag}</option>`).join('');
 
                 renderNews();
             });
+
         })();
     </script>
 </body>
 </html>
-
